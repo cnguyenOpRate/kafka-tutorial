@@ -27,15 +27,21 @@ public class ConsumerExample {
     void readMessages() {
         Properties props = new Properties();
 
-        // TODO set the right properties to connect to your cluster
-
+        props.put("bootstrap.servers", "broker:9092");
+        props.put("group.id", "test-consumer");
+        props.put("enable.auto.commit", "true");
+        props.put("auto.commit.interval.ms", "500");
+        props.put("auto.offset.reset", "earliest");
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
         consumer.subscribe(Arrays.asList("test-topic"));
         for (int i = 0; i < 10; i++) {
-
-            // TODO call the right method on your consumer and read the data from a ConsumerRecords
-
+            ConsumerRecords<String, String> records = consumer.poll(Duration.of(500, ChronoUnit.MILLIS));
+            for (ConsumerRecord<String, String> record : records) {
+                LOGGER.info("offset = {}, key = {}, value = {}", record.offset(), record.key(), record.value());
+            }
         }
 
         consumer.close();
